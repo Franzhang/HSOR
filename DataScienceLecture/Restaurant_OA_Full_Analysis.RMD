@@ -1,0 +1,171 @@
+---
+title: "DecisionTree-ID3-RestaurantFullAnalysis"
+author: "Rstudio"
+date: "February 3, 2020"
+output: html_document
+Ref1: https://www.cs.cmu.edu/~cga/ai-course/dtree.pdf 
+Ref2: 
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r}
+
+res=read.csv(file="C:\\Users\\usss\\Google Drive\\IOA\\Academic\\ML\\restaurant_visits.csv")
+ 
+library(FSelector)
+library(stringr)
+
+res=res[,-1]
+res$Pat = str_trim(res$Pat)
+
+test = res[res$Pat == "Full",]
+
+weights <- information.gain(Wait~., test, unit="log2")
+print(weights)
+
+```
+
+```{r}
+res=read.csv(file="C:\\Users\\usss\\Google Drive\\IOA\\Academic\\ML\\restaurant_visits.csv",)
+
+library(FSelector)
+res=res[,-1]
+res
+dim(res)
+
+weights <- information.gain(Wait~., res, unit="log2")
+print(weights)
+
+subset <- cutoff.k(weights,3)
+
+f <- as.simple.formula(subset, "Wait")
+print(f)
+
+```
+
+## -----------------------------------------------
+## res$Pat == 'None' is with prob no one will stay
+## res$Pat == 'Some' is with prob no one will stay
+## Now select only sample that are res$Pat=='Full' to predict further
+## -----------------------------------------------
+
+```{r}
+res=read.csv(file="C:\\Users\\usss\\Google Drive\\IOA\\Academic\\ML\\restaurant_visits.csv",stringsAsFactors = FALSE)
+
+library(FSelector)
+library(dplyr)
+res=res[,-1]
+names(res)
+class(res$Pat)
+which(res$Est=='10-30')
+
+res=res[which(res$Pat=='Full'),]
+
+
+
+res=filter(res, Pat=="Full") 
+
+res
+
+weights <- information.gain(Wait~., data=res, unit="log2")
+print(weights)
+
+```
+
+## ---There are many variables with the same information gain
+## ---with equally likely selection
+## ---We select the one with alphabetically next - variable 'Est'
+## ---In the wait estimate, 60+, no one will stay 100% and 0-10 minutes every one will stay 100%
+## ---So we need to resolve 10-30 minutes and 30-60 minutes
+
+```{r}
+res=read.csv(file="C:\\Users\\usss\\Google Drive\\IOA\\Academic\\ML\\restaurant_visits.csv") 
+
+library(FSelector)
+res=res[,-1]
+
+res=res[res$Pat == 'Full',]
+res=res[res$Est == '10-30',]
+res   # printing the selected data with the above conditions
+
+weights <- information.gain(Target~., res, unit="log2")
+
+paste("Information gain for the subset where Pat == 'Full' and Est=='10-30'")
+print(weights)
+
+```
+
+```{r}
+library(rattle)
+library(rpart.plot)
+library(RColorBrewer)
+
+res=read.csv(file="C:\\Users\\usss\\Google Drive\\IOA\\Academic\\ML\\restaurant_visits.csv") 
+res=res[,-1]
+mytree <- rpart(
+  Target ~ ., 
+  data = res, 
+  method = "class",
+  parms = list(split = 'information'), 
+  minsplit = 2, 
+  minbucket = 1
+)
+
+mytree
+
+# plot mytree
+fancyRpartPlot(mytree, caption = NULL)
+
+```
+
+```{r}
+### Reading data from google drive directly as a zip file containing a csv
+
+id <- "17m98nQ63WOeWTBAEfdE2iJ0NUQ8WY0IK" # google file ID 
+oa1<-read.csv(sprintf("https://docs.google.com/uc?id=%s&export=download", id))
+str(oa) 
+
+print(oa)
+```
+
+```{r}
+### Calculating bits needed to store the information 
+### Step2 - Choice of variables to split
+ 
+oa=oa[,-1]
+set.seed(43321)
+oa$Target=as.factor(oa$Target)
+oaRF2=randomForest(Target~., data=oa, ntree=100, proximity=T, mtry=2)
+oaRF2
+table( oa$Target,predict(oaRF2))
+oaRF2
+plot(oaRF2)
+
+oaRF3=randomForest(Target~., data=oa, ntree=100, proximity=T, mtry=3)
+oaRF3
+table( oa$Target,predict(oaRF3))
+plot(oaRF3)
+
+
+oaRF4=randomForest(Target~., data=oa, ntree=100, proximity=T, mtry=4)
+oaRF4
+table( oa$Target,predict(oaRF4))
+oaRF4
+plot(oaRF4)
+
+
+
+```
+
+
+
+```{r}
+
+
+
+
